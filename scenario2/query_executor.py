@@ -1,21 +1,16 @@
 """
 Social Places AI Engineer Test - Scenario 2
 Query Executor with Performance Analysis
-
 Author: Branden Reddy
-
-This module executes SQL queries and provides performance analysis using EXPLAIN.
 """
 
 import sqlite3
 import time
-from typing import Optional
 from dataclasses import dataclass
 
 
 @dataclass
 class QueryResult:
-    """Container for query execution results."""
     success: bool
     data: list
     columns: list
@@ -26,33 +21,20 @@ class QueryResult:
     performance_notes: list = None
 
 
-def execute_query(
-    sql: str,
-    db_path: str = "reviews.db",
-    timeout_seconds: int = 120
-) -> QueryResult:
-    """
-    Execute a SQL query with timeout protection.
-
-    Timeout default is 2 minutes as per requirements for large datasets.
-    """
+def execute_query(sql: str, db_path: str = "reviews.db", timeout_seconds: int = 120) -> QueryResult:
     try:
         conn = sqlite3.connect(db_path, timeout=timeout_seconds)
         conn.row_factory = sqlite3.Row
         cursor = conn.cursor()
 
-        # Time the execution
         start_time = time.time()
         cursor.execute(sql)
         rows = cursor.fetchall()
         end_time = time.time()
 
-        execution_time = (end_time - start_time) * 1000  # Convert to ms
+        execution_time = (end_time - start_time) * 1000
 
-        # Get column names
         columns = [description[0] for description in cursor.description] if cursor.description else []
-
-        # Convert rows to list of dicts
         data = [dict(row) for row in rows]
 
         conn.close()
@@ -96,21 +78,15 @@ def execute_query(
 
 
 def get_explain_plan(sql: str, db_path: str = "reviews.db") -> tuple[list, list]:
-    """
-    Get the EXPLAIN QUERY PLAN for a SQL statement.
-    Returns (explain_output, performance_notes).
-    """
     try:
         conn = sqlite3.connect(db_path)
         cursor = conn.cursor()
 
-        # Get EXPLAIN QUERY PLAN
         cursor.execute(f"EXPLAIN QUERY PLAN {sql}")
         plan = cursor.fetchall()
 
         conn.close()
 
-        # Parse the plan for performance notes
         notes = analyze_query_plan(plan, sql)
 
         return plan, notes
@@ -120,59 +96,39 @@ def get_explain_plan(sql: str, db_path: str = "reviews.db") -> tuple[list, list]
 
 
 def analyze_query_plan(plan: list, sql: str) -> list:
-    """
-    Analyze the query plan and provide performance recommendations.
-    """
     notes = []
     plan_text = " ".join([str(row) for row in plan]).upper()
 
-    # Check for table scans (no index usage)
     if "SCAN TABLE" in plan_text and "USING INDEX" not in plan_text:
         notes.append("Full table scan detected. Consider adding WHERE clauses or using indexed columns.")
 
-    # Check for covering index usage (good)
     if "USING COVERING INDEX" in plan_text:
         notes.append("Query uses covering index efficiently.")
 
-    # Check for temporary tables (can be slow)
     if "TEMP" in plan_text or "TEMPORARY" in plan_text:
         notes.append("Query creates temporary tables. May be slow on large datasets.")
 
-    # Check for sorting without index
     if "ORDER BY" in sql.upper() and "USING INDEX" not in plan_text:
         notes.append("Sorting without index. Consider indexing the ORDER BY column.")
 
-    # Check for multiple table scans
     scan_count = plan_text.count("SCAN TABLE")
     if scan_count > 1:
         notes.append(f"Multiple table scans detected ({scan_count}). Ensure proper indexes on join columns.")
 
-    # If query looks good
     if not notes:
         notes.append("Query plan looks efficient.")
 
     return notes
 
 
-def execute_with_analysis(
-    sql: str,
-    db_path: str = "reviews.db",
-    timeout_seconds: int = 120
-) -> QueryResult:
-    """
-    Execute query and include EXPLAIN analysis in the result.
-    """
-    # First get the explain plan
+def execute_with_analysis(sql: str, db_path: str = "reviews.db", timeout_seconds: int = 120) -> QueryResult:
     explain_plan, performance_notes = get_explain_plan(sql, db_path)
 
-    # Then execute the actual query
     result = execute_query(sql, db_path, timeout_seconds)
 
-    # Add the analysis to the result
     result.explain_plan = explain_plan
     result.performance_notes = performance_notes
 
-    # Add timing-based notes
     if result.success:
         if result.execution_time_ms > 5000:
             result.performance_notes.append(f"Query took {result.execution_time_ms:.0f}ms. Consider optimization for production.")
@@ -183,7 +139,6 @@ def execute_with_analysis(
 
 
 def format_result_as_table(result: QueryResult, max_rows: int = 20) -> str:
-    """Format query results as a readable text table."""
     if not result.success:
         return f"ERROR: {result.error_message}"
 
@@ -192,11 +147,9 @@ def format_result_as_table(result: QueryResult, max_rows: int = 20) -> str:
 
     output = []
 
-    # Header
     output.append(" | ".join(result.columns))
     output.append("-" * len(output[0]))
 
-    # Data rows (limited)
     for row in result.data[:max_rows]:
         values = [str(row.get(col, ""))[:30] for col in result.columns]
         output.append(" | ".join(values))
@@ -212,7 +165,6 @@ def format_result_as_table(result: QueryResult, max_rows: int = 20) -> str:
 
 
 def format_explain_output(result: QueryResult) -> str:
-    """Format the EXPLAIN analysis for display."""
     output = []
 
     output.append("QUERY PLAN:")
@@ -232,7 +184,6 @@ def format_explain_output(result: QueryResult) -> str:
 
 
 if __name__ == "__main__":
-    # Test with sample queries
     test_queries = [
         "SELECT store_name, COUNT(*) as count FROM reviews GROUP BY store_name ORDER BY count DESC LIMIT 5",
         "SELECT AVG(rating) as avg_rating FROM reviews WHERE store_name = 'Social Places Canal Walk'",

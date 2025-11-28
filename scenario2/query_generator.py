@@ -1,11 +1,7 @@
 """
 Social Places AI Engineer Test - Scenario 2
 Text-to-SQL Query Generator
-
 Author: Branden Reddy
-
-This module converts natural language questions into SQL queries
-for the review reporting system.
 """
 
 import os
@@ -13,7 +9,6 @@ import json
 import re
 from openai import OpenAI
 
-# JSON schema for structured SQL output
 SQL_RESPONSE_SCHEMA = {
     "type": "json_schema",
     "json_schema": {
@@ -71,7 +66,6 @@ SQL_RESPONSE_SCHEMA = {
     }
 }
 
-# Schema information for the LLM
 DATABASE_SCHEMA = """
 DATABASE SCHEMA:
 
@@ -171,11 +165,6 @@ SQL: SELECT store_name, AVG(rating) as avg_rating, COUNT(*) as review_count
 
 
 def generate_sql_query(question: str) -> dict:
-    """
-    Convert a natural language question into a SQL query.
-
-    Returns structured response with query, explanation, and any guardrail flags.
-    """
     client = OpenAI()
 
     user_message = f"""
@@ -198,7 +187,6 @@ Generate a SQL query to answer this question. Follow all rules and guardrails.
 
     result = json.loads(response.choices[0].message.content)
 
-    # Add metadata
     result["_metadata"] = {
         "model": "gpt-4o-mini",
         "tokens_used": {
@@ -212,27 +200,20 @@ Generate a SQL query to answer this question. Follow all rules and guardrails.
 
 
 def validate_sql_safety(sql: str) -> tuple[bool, str]:
-    """
-    Additional safety check on generated SQL.
-    Returns (is_safe, reason).
-    """
     if not sql or not sql.strip():
         return True, ""
 
     sql_upper = sql.upper().strip()
 
-    # Block any non-SELECT statements
     dangerous_keywords = [
         "INSERT", "UPDATE", "DELETE", "DROP", "ALTER", "CREATE",
         "TRUNCATE", "EXEC", "EXECUTE", "GRANT", "REVOKE"
     ]
 
     for keyword in dangerous_keywords:
-        # Check if keyword appears as a standalone word
         if re.search(rf'\b{keyword}\b', sql_upper):
             return False, f"Blocked: {keyword} statements are not allowed"
 
-    # Must start with SELECT or WITH (for CTEs)
     if not (sql_upper.startswith("SELECT") or sql_upper.startswith("WITH")):
         return False, "Query must be a SELECT statement"
 
@@ -240,10 +221,6 @@ def validate_sql_safety(sql: str) -> tuple[bool, str]:
 
 
 def check_competitor_mention(question: str) -> tuple[bool, str]:
-    """
-    Pre-check for competitor mentions before sending to LLM.
-    Returns (has_competitor, competitor_name).
-    """
     competitors = [
         "mcdonald", "mcdonalds", "kfc", "spur", "nando", "nandos",
         "wimpy", "steers", "burger king", "ocean basket", "pizza hut",
@@ -261,7 +238,6 @@ def check_competitor_mention(question: str) -> tuple[bool, str]:
 
 
 def format_query_result(result: dict) -> str:
-    """Format the query generation result for display."""
     output = []
 
     output.append(f"QUESTION UNDERSTOOD: {result['understood_question']}")
@@ -307,7 +283,6 @@ if __name__ == "__main__":
         print(f"\nQuestion: {question}")
         print("-" * 40)
 
-        # Pre-check for competitors
         has_competitor, competitor = check_competitor_mention(question)
         if has_competitor:
             print(f"BLOCKED: Cannot process queries about competitor brands ({competitor})")

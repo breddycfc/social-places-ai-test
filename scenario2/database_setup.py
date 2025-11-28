@@ -1,18 +1,13 @@
 """
 Social Places AI Engineer Test - Scenario 2
 Database Setup and Sample Data
-
 Author: Branden Reddy
-
-This creates a SQLite database with sample review data for testing.
-In production this would connect to the actual database.
 """
 
 import sqlite3
 import random
 from datetime import datetime, timedelta
 
-# Cape Town area stores for that local flavour
 STORES = [
     "Social Places V&A Waterfront",
     "Social Places Canal Walk",
@@ -29,7 +24,6 @@ STORES = [
 PLATFORMS = ["Google", "Facebook", "TripAdvisor"]
 STATUSES = ["Resolved", "Open", "Pending"]
 
-# Review templates with categories
 POSITIVE_REVIEWS = [
     ("Amazing service from start to finish! The staff were friendly and attentive.", ["Service [Positive]"]),
     ("Food was delicious and the place was spotless. Will definitely come back.", ["Food [Positive]", "Cleanliness [Positive]"]),
@@ -70,17 +64,14 @@ MEALS = ["Burger and Chips", "Fish and Chips", "Steak", "Salad", "Pizza", "Pasta
 
 
 def create_database(db_path="reviews.db"):
-    """Create the database schema."""
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
 
-    # Drop existing tables
     cursor.execute("DROP TABLE IF EXISTS reviews")
     cursor.execute("DROP TABLE IF EXISTS review_categories")
     cursor.execute("DROP TABLE IF EXISTS review_ratings")
     cursor.execute("DROP TABLE IF EXISTS review_extras")
 
-    # Main reviews table
     cursor.execute("""
         CREATE TABLE reviews (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -96,7 +87,6 @@ def create_database(db_path="reviews.db"):
         )
     """)
 
-    # Categories table (Service [Negative], etc.)
     cursor.execute("""
         CREATE TABLE review_categories (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -107,7 +97,6 @@ def create_database(db_path="reviews.db"):
         )
     """)
 
-    # Dynamic rating fields (Service rating, Cleanliness rating, etc.)
     cursor.execute("""
         CREATE TABLE review_ratings (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -118,7 +107,6 @@ def create_database(db_path="reviews.db"):
         )
     """)
 
-    # Dynamic extra fields (Waitron Name, Meal Ordered, etc.)
     cursor.execute("""
         CREATE TABLE review_extras (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -129,7 +117,6 @@ def create_database(db_path="reviews.db"):
         )
     """)
 
-    # Create indexes for performance (important for 10M+ records)
     cursor.execute("CREATE INDEX idx_reviews_store ON reviews(store_name)")
     cursor.execute("CREATE INDEX idx_reviews_brand ON reviews(brand_name)")
     cursor.execute("CREATE INDEX idx_reviews_date ON reviews(review_date)")
@@ -146,22 +133,17 @@ def create_database(db_path="reviews.db"):
 
 
 def generate_sample_data(conn, num_reviews=5000):
-    """Generate sample review data."""
     cursor = conn.cursor()
 
-    # Generate reviews over the past 2 years
     end_date = datetime.now()
     start_date = end_date - timedelta(days=730)
 
     for i in range(num_reviews):
-        # Random date
         days_offset = random.randint(0, 730)
         review_date = start_date + timedelta(days=days_offset, hours=random.randint(8, 22))
 
-        # Pick review type (more negative for some stores to create patterns)
         store = random.choice(STORES)
 
-        # Make some stores have worse service for testing
         if store in ["Social Places Canal Walk", "Social Places Tyger Valley"]:
             review_type = random.choices(
                 ["positive", "negative", "mixed"],
@@ -183,7 +165,6 @@ def generate_sample_data(conn, num_reviews=5000):
             comment, categories = random.choice(MIXED_REVIEWS)
             rating = random.randint(2, 4)
 
-        # Insert review
         cursor.execute("""
             INSERT INTO reviews (store_name, brand_name, platform, review_date,
                                review_comment, reviewer_name, review_status, rating)
@@ -201,7 +182,6 @@ def generate_sample_data(conn, num_reviews=5000):
 
         review_id = cursor.lastrowid
 
-        # Insert categories
         for cat in categories:
             cat_name = cat.split(" [")[0]
             sentiment = cat.split("[")[1].replace("]", "")
@@ -210,7 +190,6 @@ def generate_sample_data(conn, num_reviews=5000):
                 VALUES (?, ?, ?)
             """, (review_id, cat_name, sentiment))
 
-        # Add dynamic ratings (randomly)
         if random.random() > 0.3:
             service_rating = max(1, min(5, rating + random.randint(-1, 1)))
             cursor.execute("""
@@ -224,7 +203,6 @@ def generate_sample_data(conn, num_reviews=5000):
                 VALUES (?, ?, ?)
             """, (review_id, "Cleanliness", random.randint(3, 5)))
 
-        # Add dynamic extras (randomly)
         if random.random() > 0.6:
             cursor.execute("""
                 INSERT INTO review_extras (review_id, field_name, field_value)
@@ -242,9 +220,6 @@ def generate_sample_data(conn, num_reviews=5000):
 
 
 def get_schema_info(conn):
-    """Get schema information for the LLM."""
-    cursor = conn.cursor()
-
     schema = """
 DATABASE SCHEMA:
 
@@ -288,7 +263,6 @@ if __name__ == "__main__":
     conn = create_database("reviews.db")
     generate_sample_data(conn, num_reviews=5000)
 
-    # Print some stats
     cursor = conn.cursor()
     cursor.execute("SELECT COUNT(*) FROM reviews")
     print(f"Total reviews: {cursor.fetchone()[0]}")
