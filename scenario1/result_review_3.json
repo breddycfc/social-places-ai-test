@@ -1,0 +1,25 @@
+{
+  "sentiment_analysis": {
+    "sentiment": "negative",
+    "confidence": 0.9,
+    "reasoning": "Although the rating is 5 stars, the comment indicates a serious issue with the food, which leads to a negative sentiment overall."
+  },
+  "detected_tone_context": "formal",
+  "response": {
+    "salutation": "Hello Alex,",
+    "introduction": "Thank you for bringing this to our attention.",
+    "body": "We are truly sorry to hear about your experience with the cockroach in your soup. This is certainly not the standard we strive for, and we appreciate you letting us know.",
+    "conclusion": "Please reach out to us through our support link for assistance, as we would like to resolve this matter promptly.",
+    "closing": "Best regards, Social Places"
+  },
+  "support_link_included": true,
+  "support_link": "https://support.socialplaces.io/help",
+  "_metadata": {
+    "model": "gpt-4o-mini",
+    "tokens_used": {
+      "prompt": 688,
+      "completion": 164,
+      "total": 852
+    }
+  }
+}

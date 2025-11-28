@@ -1,0 +1,25 @@
+{
+  "sentiment_analysis": {
+    "sentiment": "mixed",
+    "confidence": 0.85,
+    "reasoning": "The rating of 3/5 stars indicates a mixed sentiment, and the comment reflects an average experience with both positive and negative feedback."
+  },
+  "detected_tone_context": "formal",
+  "response": {
+    "salutation": "Hello John,",
+    "introduction": "Thank you for taking the time to share your feedback with us.",
+    "body": "We appreciate your insights regarding the service and communication. It's great to hear that the software met your expectations, but we understand there is room for improvement in clarity and polish.",
+    "conclusion": "Your feedback is valuable to us, and we are committed to enhancing our services.",
+    "closing": "Best regards, Social Places"
+  },
+  "support_link_included": false,
+  "support_link": null,
+  "_metadata": {
+    "model": "gpt-4o-mini",
+    "tokens_used": {
+      "prompt": 728,
+      "completion": 156,
+      "total": 884
+    }
+  }
+}

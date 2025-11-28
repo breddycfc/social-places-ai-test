@@ -1,0 +1,25 @@
+{
+  "sentiment_analysis": {
+    "sentiment": "positive",
+    "confidence": 0.95,
+    "reasoning": "The comment is highly positive, praising response times and store hours, aligning with the 5-star rating."
+  },
+  "detected_tone_context": "friendly",
+  "response": {
+    "salutation": "Hi Jane,",
+    "introduction": "Thank you for your wonderful feedback!",
+    "body": "We are thrilled to hear that you appreciate our response times and extended hours. It's great to know that we can accommodate your schedule after work.",
+    "conclusion": "Your support means a lot to us, and we look forward to seeing you again soon!",
+    "closing": "Best, Social Places"
+  },
+  "support_link_included": false,
+  "support_link": null,
+  "_metadata": {
+    "model": "gpt-4o-mini",
+    "tokens_used": {
+      "prompt": 704,
+      "completion": 141,
+      "total": 845
+    }
+  }
+}
